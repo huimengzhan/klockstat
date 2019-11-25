@@ -200,6 +200,8 @@ def generate_report(event_list):
         lock_times[event['type']].append(event['lock_time'])
     for lock in locks:
         lock_times_list = np.array(lock_times[lock['id']])
+        if len(lock_times_list) == 0:
+            continue
         box_data[lock['name']] = [np.min(lock_times_list),
                                   np.percentile(lock_times_list, 25),
                                   np.percentile(lock_times_list, 50),
@@ -214,7 +216,8 @@ def generate_report(event_list):
     with open("lockstat_report.html", "w") as out_file:
         template = env.get_template('report.html')
         output_from_parsed_template = template.render(data=report_data)
-        out_file.write(output_from_parsed_template.encode('utf8'))
+#        out_file.write(output_from_parsed_template.encode('utf8'))
+        out_file.write(output_from_parsed_template)
 
 
 def stack_id_err(stack_id):
@@ -241,7 +244,8 @@ def get_stack(stack_id):
     for addr in stack:
         func_name = b.sym(addr, -1, show_module=False, show_offset=False)
         # if "kretprobe_trampoline" not in func_name:
-        stack_str += func_name + "<br>"
+#        stack_str += func_name + "<br>"
+        stack_str += func_name.decode("utf8") + "<br>"
     return stack_str
 
 
@@ -337,7 +341,8 @@ except KeyboardInterrupt:
     pass
 finally:
     min_lock_time = 100000000000
-    for key, event in events.iteritems():
+#    for key, event in events.iteritems():
+    for key, event in events.items():
         if event['diff'] < min_lock_time:
             min_lock_time = event['diff']
     print("\nMinimum lock time is : %d\n" % min_lock_time)
